@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dziennik Tradera</title>
+    <link rel="stylesheet" href="trader_diary_styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Dziennik Tradera</h1>
+        </div>
+        
+        <div class="buttons-row">
+            <button class="add-btn" onclick="showAddDayModal()">+ Dodaj dzień</button>
+            <button class="add-btn" onclick="showAddWeeklyModal()">+ Podsumowanie tygodnia</button>
+            <button class="add-btn" onclick="openRulesPage()">Zasady & Setupy</button>
+            <button class="add-btn" onclick="openStatistics()">Statystyki Tradera</button>
+            <button class="add-btn icon-only" onclick="toggleFilters()" title="Filtry" id="filtersToggle">⚙️</button>
+        </div>
+        
+        <!-- Filtry -->
+        <div class="filters-section" id="filtersSection">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label class="filter-label">Kapitał początkowy:</label>
+                    <input type="number" id="initialCapital" class="filter-input" value="300" min="1" step="1" style="width: 80px;" onchange="updateInitialCapital()">
+                    <span class="filter-separator">$</span>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Szybkie filtry:</label>
+                    <select id="quickDateFilter" class="filter-input" onchange="applyQuickDateFilter()" style="min-width: 140px;">
+                        <option value="">Wybierz okres</option>
+                        <option value="thisWeek">Ten tydzień</option>
+                        <option value="lastWeek">Poprzedni tydzień</option>
+                        <option value="thisMonth">Ten miesiąc</option>
+                        <option value="lastMonth">Poprzedni miesiąc</option>
+                        <option value="last7days">Ostatnie 7 dni</option>
+                        <option value="last30days">Ostatnie 30 dni</option>
+                        <option value="thisYear">Ten rok</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Własny okres:</label>
+                    <input type="date" id="dateFrom" class="filter-input" onchange="applyFilters()">
+                    <span class="filter-separator">do</span>
+                    <input type="date" id="dateTo" class="filter-input" onchange="applyFilters()">
+                    <button class="filter-btn" onclick="clearDateFilter()">Wyczyść</button>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Filtr setupów:</label>
+                    <select id="setupFilter" class="filter-input" onchange="applyFilters()" style="min-width: 120px;">
+                        <option value="">Wszystkie setupy</option>
+                        <option value="setup1">Setup nr. 1</option>
+                        <option value="setup2">Setup nr. 2</option>
+                        <option value="setup3">Setup nr. 3</option>
+                        <option value="setup4">Setup nr. 4</option>
+                        <option value="setup5">Setup nr. 5</option>
+                        <option value="setup6">Setup nr. 6</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn" onclick="clearAllFilters()">Wyczyść wszystko</button>
+                    <button class="filter-btn" onclick="exportData()" title="Eksport danych">💾</button>
+                    <button class="filter-btn" onclick="document.getElementById('importFile').click()" title="Import danych">📂</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none" onchange="importData(event)">
+                </div>
+            </div>
+        </div>
+        
+        <div id="entriesList">
+            <!-- Wpisy będą dodawane tutaj dynamicznie -->
+        </div>
+        
+        <div id="pagination" class="pagination">
+            <!-- Paginacja będzie dodawana tutaj dynamicznie -->
+        </div>
+    </div>
+    
+    <!-- Modal dodawania dnia -->
+    <div id="addDayModal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Dodaj nowy dzień</h3>
+            <div class="form-group">
+                <label class="form-label">Data:</label>
+                <input type="date" id="dayDate" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kwota (+ dla zysku, - dla straty):</label>
+                <input type="number" step="1" id="dayAmount" class="form-input" placeholder="np. 25 lub -15">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="calendarCheck">
+                <label for="calendarCheck">Sprawdziłeś kalendarz?</label>
+            </div>
+            
+            <div class="box-grid">
+                <div class="box-section-title">Analiza poziomów:</div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #888;">Szary box odbicie:</label>
+                    <input type="number" step="1" id="grayBounce" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #888;">Szary box przebicie:</label>
+                    <input type="number" step="1" id="grayBreak" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #4CAF50;">Zielony box odbicie:</label>
+                    <input type="number" step="1" id="greenBounce" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #4CAF50;">Zielony box przebicie:</label>
+                    <input type="number" step="1" id="greenBreak" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #f44336;">Czerwony box odbicie:</label>
+                    <input type="number" step="1" id="redBounce" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #f44336;">Czerwony box przebicie:</label>
+                    <input type="number" step="1" id="redBreak" class="form-input" value="0">
+                </div>
+            </div>
+            
+            <div style="border-top: 1px solid #333; margin-top: 15px; padding-top: 15px;">
+                <div class="box-section-title">Setupy tradingowe:</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="setup1">
+                        <label for="setup1">Setup nr. 1</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="setup2">
+                        <label for="setup2">Setup nr. 2</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="setup3">
+                        <label for="setup3">Setup nr. 3</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="setup4">
+                        <label for="setup4">Setup nr. 4</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="setup5">
+                        <label for="setup5">Setup nr. 5</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="setup6">
+                        <label for="setup6">Setup nr. 6</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideAddDayModal()">Anuluj</button>
+                <button class="btn btn-primary" onclick="addDay()">Dodaj</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal dodawania opisu -->
+    <div id="addDescModal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Dodaj opis</h3>
+            <div class="form-group">
+                <label class="form-label">Godzina:</label>
+                <select id="descHour" class="form-input">
+                    <option value="">Wybierz godzinę</option>
+                    <option value="8">8:00</option>
+                    <option value="9">9:00</option>
+                    <option value="10">10:00</option>
+                    <option value="11">11:00</option>
+                    <option value="12">12:00</option>
+                    <option value="13">13:00</option>
+                    <option value="14">14:00</option>
+                    <option value="15">15:00</option>
+                    <option value="16">16:00</option>
+                    <option value="17">17:00</option>
+                    <option value="18">18:00</option>
+                    <option value="19">19:00</option>
+                    <option value="20">20:00</option>
+                    <option value="21">21:00</option>
+                    <option value="22">22:00</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Opis sytuacji na rynku:</label>
+                <textarea id="descText" class="form-input" placeholder="Możesz używać markdown i enterów"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Screenshot (opcjonalnie):</label>
+                <input type="file" id="descScreenshot" class="form-input" accept="image/*">
+                <div style="margin-top: 5px; font-size: 10px; color: #888;">
+                    Możesz też wkleić obraz ze schowka (Ctrl+V)
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Błędy (czerwona czcionka):</label>
+                <textarea id="descErrors" class="form-input" placeholder="Opisz błędy które popełniłeś"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideAddDescModal()">Anuluj</button>
+                <button class="btn btn-primary" onclick="addDescription()">Dodaj</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal podsumowania tygodnia -->
+    <div id="addWeeklyModal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Podsumowanie tygodnia</h3>
+            <div class="form-group">
+                <label class="form-label">Data od:</label>
+                <input type="date" id="weeklyDateFrom" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Data do:</label>
+                <input type="date" id="weeklyDateTo" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kwota zarobiona/stracona w tym tygodniu:</label>
+                <input type="number" step="1" id="weeklyAmount" class="form-input" placeholder="Zostanie obliczone automatycznie">
+                <div style="margin-top: 5px; font-size: 10px; color: #888;">
+                    Kwota będzie automatycznie obliczona po wybraniu dat
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Co mogłem zrobić lepiej?</label>
+                <textarea id="weeklyImprove" class="form-input" placeholder="Opisz co można było zrobić lepiej..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Co zrobiłem dobrze?</label>
+                <textarea id="weeklyGood" class="form-input" placeholder="Opisz co poszło dobrze..."></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideAddWeeklyModal()">Anuluj</button>
+                <button class="btn btn-primary" onclick="addWeeklySummary()">Dodaj</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal edycji opisu -->
+    <div id="editDescModal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Edytuj opis</h3>
+            <div class="form-group">
+                <label class="form-label">Godzina:</label>
+                <select id="editDescHour" class="form-input">
+                    <option value="">Wybierz godzinę</option>
+                    <option value="8">8:00</option>
+                    <option value="9">9:00</option>
+                    <option value="10">10:00</option>
+                    <option value="11">11:00</option>
+                    <option value="12">12:00</option>
+                    <option value="13">13:00</option>
+                    <option value="14">14:00</option>
+                    <option value="15">15:00</option>
+                    <option value="16">16:00</option>
+                    <option value="17">17:00</option>
+                    <option value="18">18:00</option>
+                    <option value="19">19:00</option>
+                    <option value="20">20:00</option>
+                    <option value="21">21:00</option>
+                    <option value="22">22:00</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Opis sytuacji na rynku:</label>
+                <textarea id="editDescText" class="form-input" placeholder="Możesz używać markdown i enterów"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Screenshot (opcjonalnie):</label>
+                <input type="file" id="editDescScreenshot" class="form-input" accept="image/*">
+                <div id="currentScreenshot" style="margin-top: 5px; font-size: 10px; color: #888;"></div>
+                <div style="margin-top: 3px; font-size: 10px; color: #888;">
+                    Możesz też wkleić obraz ze schowka (Ctrl+V)
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Błędy (czerwona czcionka):</label>
+                <textarea id="editDescErrors" class="form-input" placeholder="Opisz błędy które popełniłeś"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideEditDescModal()">Anuluj</button>
+                <button class="btn btn-primary" onclick="saveEditDescription()">Zapisz</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal edycji dnia -->
+    <div id="editDayModal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Edytuj dzień</h3>
+            <div class="form-group">
+                <label class="form-label">Data:</label>
+                <input type="date" id="editDayDate" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kwota (+ dla zysku, - dla straty):</label>
+                <input type="number" step="1" id="editDayAmount" class="form-input" placeholder="np. 25 lub -15">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="editCalendarCheck">
+                <label for="editCalendarCheck">Sprawdziłeś kalendarz?</label>
+            </div>
+            
+            <div class="box-grid">
+                <div class="box-section-title">Analiza poziomów:</div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #888;">Szary box odbicie:</label>
+                    <input type="number" step="1" id="editGrayBounce" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #888;">Szary box przebicie:</label>
+                    <input type="number" step="1" id="editGrayBreak" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #4CAF50;">Zielony box odbicie:</label>
+                    <input type="number" step="1" id="editGreenBounce" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #4CAF50;">Zielony box przebicie:</label>
+                    <input type="number" step="1" id="editGreenBreak" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #f44336;">Czerwony box odbicie:</label>
+                    <input type="number" step="1" id="editRedBounce" class="form-input" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="color: #f44336;">Czerwony box przebicie:</label>
+                    <input type="number" step="1" id="editRedBreak" class="form-input" value="0">
+                </div>
+            </div>
+            
+            <div style="border-top: 1px solid #333; margin-top: 15px; padding-top: 15px;">
+                <div class="box-section-title">Setupy tradingowe:</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="editSetup1">
+                        <label for="editSetup1">Setup nr. 1</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="editSetup2">
+                        <label for="editSetup2">Setup nr. 2</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="editSetup3">
+                        <label for="editSetup3">Setup nr. 3</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="editSetup4">
+                        <label for="editSetup4">Setup nr. 4</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="editSetup5">
+                        <label for="editSetup5">Setup nr. 5</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="editSetup6">
+                        <label for="editSetup6">Setup nr. 6</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideEditDayModal()">Anuluj</button>
+                <button class="btn btn-primary" onclick="saveEditDay()">Zapisz</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="trader_diary_script.js"></script>
+</body>
+</html>
