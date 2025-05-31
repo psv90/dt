@@ -434,13 +434,15 @@
         </div>
     </div>
 
+    <script src="user_management.js"></script>
+    <script src="supabase_integration.js"></script>
     <script>
         let rules = [];
         let setups = [];
         let editingRuleId = null;
         let editingSetupId = null;
         
-        // Funkcje localStorage
+        // Funkcje localStorage z integracją Supabase
         function saveToLocalStorage() {
             const data = {
                 rules: rules,
@@ -448,6 +450,21 @@
                 timestamp: Date.now()
             };
             localStorage.setItem('traderRulesSetups', JSON.stringify(data));
+            
+            // Automatyczna synchronizacja z chmurą
+            if (window.supabaseSync && navigator.onLine) {
+                clearTimeout(window.rulesSyncTimeout);
+                window.rulesSyncTimeout = setTimeout(async () => {
+                    try {
+                        console.log('Auto-syncing rules and setups to cloud...');
+                        await window.supabaseSync.syncRulesToCloud(rules);
+                        await window.supabaseSync.syncSetupsToCloud(setups);
+                        console.log('Rules and setups synced successfully');
+                    } catch (error) {
+                        console.error('Rules/setups sync failed:', error);
+                    }
+                }, 2000);
+            }
         }
         
         function loadFromLocalStorage() {
@@ -456,10 +473,142 @@
             setups = data.setups || [];
         }
         
+        // Synchronizacja z chmury przy starcie
+        async function initializeRulesAndSetups() {
+            // Sprawdź czy użytkownik jest zalogowany
+            if (!window.userManager || !window.userManager.getCurrentUser()) {
+                console.log('No user logged in, waiting...');
+                setTimeout(initializeRulesAndSetups, 1000);
+                return;
+            }
+            
+            // Załaduj dane lokalnie
+            loadFromLocalStorage();
+            
+            // Spróbuj zsynchronizować z chmury
+            if (window.supabaseSync && navigator.onLine) {
+                try {
+                    console.log('Loading rules and setups from cloud...');
+                    const cloudRules = await window.supabaseSync.getRulesFromCloud();
+                    const cloudSetups = await window.supabaseSync.getSetupsFromCloud();
+                    
+                    if (cloudRules.length > 0 || cloudSetups.length > 0) {
+                        rules = cloudRules;
+                        setups = cloudSetups;
+                        
+                        // Zapisz do localStorage
+                        const data = {
+                            rules: rules,
+                            setups: setups,
+                            timestamp: Date.now()
+                        };
+                        localStorage.setItem('traderRulesSetups', JSON.stringify(data));
+                        
+                        console.log(`Loaded ${rules.length} rules and ${setups.length} setups from cloud`);
+                    }
+                } catch (error) {
+                    console.error('Failed to load from cloud:', error);
+                }
+            }
+            
+            // Renderuj interfejs
+            renderRules();
+            renderSetups();
+        }
+        
+        // Dodaj przycisk synchronizacji do interfejsu
+        function addSyncButton() {
+            const header = document.querySelector('.header');
+            if (header && !document.getElementById('rulesSyncBtn')) {
+                const syncDiv = document.createElement('div');
+                syncDiv.style.cssText = 'text-align: center; margin-top: 10px;';
+                syncDiv.innerHTML = `
+                    <button id="rulesSyncBtn" onclick="manualSyncRules()" style="background-color: #333; color: #ccc; border: 1px solid #555; padding: 4px 8px; border-radius: 2px; cursor: pointer; font-size: 10px;">
+                        ☁️ Synchronizuj z chmurą
+                    </button>
+                    <span id="rulesSyncStatus" style="margin-left: 10px; font-size: 10px; color: #888;">Offline</span>
+                `;
+                header.appendChild(syncDiv);
+                
+                // Sprawdź połączenie
+                setTimeout(async () => {
+                    if (window.supabaseSync) {
+                        const connected = await window.supabaseSync.checkConnection();
+                        updateRulesSyncStatus(connected);
+                    }
+                }, 1000);
+            }
+        }
+        
+        // Ręczna synchronizacja
+        async function manualSyncRules() {
+            const btn = document.getElementById('rulesSyncBtn');
+            const status = document.getElementById('rulesSyncStatus');
+            
+            if (!btn || !status) return;
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Sync...';
+            status.textContent = 'Synchronizacja...';
+            status.style.color = '#ffaa00';
+            
+            try {
+                if (!window.supabaseSync) {
+                    throw new Error('Supabase not initialized');
+                }
+                
+                // Pobierz z chmury
+                const cloudRules = await window.supabaseSync.getRulesFromCloud();
+                const cloudSetups = await window.supabaseSync.getSetupsFromCloud();
+                
+                // Zapisz do chmury
+                await window.supabaseSync.syncRulesToCloud(rules);
+                await window.supabaseSync.syncSetupsToCloud(setups);
+                
+                status.textContent = 'Zsynchronizowano';
+                status.style.color = '#4CAF50';
+                
+                setTimeout(() => {
+                    updateRulesSyncStatus(true);
+                }, 2000);
+                
+            } catch (error) {
+                status.textContent = 'Błąd sync';
+                status.style.color = '#f44336';
+                console.error('Manual rules sync error:', error);
+                
+                setTimeout(() => {
+                    updateRulesSyncStatus(false);
+                }, 2000);
+            }
+            
+            btn.disabled = false;
+            btn.textContent = '☁️ Synchronizuj z chmurą';
+        }
+        
+        // Aktualizuj status synchronizacji
+        function updateRulesSyncStatus(connected) {
+            const status = document.getElementById('rulesSyncStatus');
+            if (status) {
+                if (connected && navigator.onLine) {
+                    status.textContent = 'Online';
+                    status.style.color = '#4CAF50';
+                } else {
+                    status.textContent = 'Offline';
+                    status.style.color = '#888';
+                }
+            }
+        }
+        
         // Inicjalizacja
-        loadFromLocalStorage();
-        renderRules();
-        renderSetups();
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                addSyncButton();
+                initializeRulesAndSetups();
+            }, 500);
+        });
+        
+        // Reszta kodu bez zmian...
         
         // Funkcje pomocnicze
         function formatMarkdown(text) {
