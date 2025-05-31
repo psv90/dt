@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zasady i Setupy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .back-btn {
+            background-color: #1a1a1a;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .back-btn:hover {
+            background-color: #2a2a2a;
+        }
+        
+        .section {
+            background-color: #111;
+            border: 1px solid #333;
+            border-radius: 2px;
+            margin-bottom: 15px;
+        }
+        
+        .section-header {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-title {
+            margin: 0;
+            font-size: 14px;
+            color: #fff;
+        }
+        
+        .add-btn {
+            background-color: #1a1a1a;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .add-btn:hover {
+            background-color: #2a2a2a;
+        }
+        
+        .section-content {
+            padding: 15px;
+        }
+        
+        .setups-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .setups-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .rule-item {
+            background-color: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .rule-number {
+            font-size: 11px;
+            color: #4CAF50;
+            font-weight: bold;
+            flex-shrink: 0;
+            min-width: 60px;
+        }
+        
+        .rule-text {
+            font-size: 12px;
+            color: #fff;
+            line-height: 1.4;
+            flex: 1;
+        }
+        
+        .rule-buttons {
+            display: none;
+            gap: 5px;
+        }
+        
+        .rule-item:hover .rule-buttons {
+            display: flex;
+        }
+        
+        .rule-delete, .rule-edit {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px;
+        }
+        
+        .rule-delete:hover, .rule-edit:hover {
+            color: #f44336;
+        }
+        
+        .rule-edit:hover {
+            color: #4CAF50;
+        }
+        
+        .setup-item {
+            background-color: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .setup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .setup-title {
+            font-size: 13px;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .setup-description {
+            font-size: 12px;
+            color: #fff;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+        
+        .setup-screenshots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .setup-screenshot {
+            width: 120px;
+            height: 80px;
+            object-fit: cover;
+            border: 1px solid #333;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .setup-screenshot:hover {
+            transform: scale(1.05);
+        }
+        
+        .setup-buttons {
+            display: none;
+            gap: 5px;
+        }
+        
+        .setup-item:hover .setup-buttons {
+            display: flex;
+        }
+        
+        .setup-delete, .setup-edit {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px;
+        }
+        
+        .setup-delete:hover, .setup-edit:hover {
+            color: #f44336;
+        }
+        
+        .setup-edit:hover {
+            color: #4CAF50;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1a1a1a;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            min-width: 300px;
+        }
+        
+        .modal-title {
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 11px;
+            color: #ccc;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 6px 8px;
+            background-color: #0a0a0a;
+            border: 1px solid #444;
+            border-radius: 2px;
+            color: #fff;
+            font-size: 12px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #666;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border: 1px solid #444;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        
+        .btn-primary {
+            background-color: #333;
+            color: #fff;
+        }
+        
+        .btn-secondary {
+            background-color: #1a1a1a;
+            color: #ccc;
+        }
+        
+        .btn:hover {
+            opacity: 0.8;
+        }
+        
+        textarea.form-input {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .empty-state {
+            color: #888;
+            font-size: 11px;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Zasady i Setupy</h1>
+        </div>
+        
+        <button class="back-btn" onclick="window.location.href='trader_diary_main.html'">← Powrót do dziennika</button>
+        
+        <!-- Sekcja Zasady -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">Zasady Tradingu</h3>
+                <button class="add-btn" onclick="showAddRuleModal()">+ Dodaj zasadę</button>
+            </div>
+            <div class="section-content">
+                <div id="rulesList">
+                    <!-- Zasady będą dodawane tutaj -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sekcja Setupy -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title">Setupy Tradingowe</h3>
+                <button class="add-btn" onclick="showAddSetupModal()">+ Dodaj setup</button>
+            </div>
+            <div class="section-content">
+                <div id="setupsList" class="setups-grid">
+                    <!-- Setupy będą dodawane tutaj -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal dodawania zasady -->
+    <div id="addRuleModal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Dodaj nową zasadę</h3>
+            <div class="form-group">
+                <label class="form-label">Treść zasady:</label>
+                <textarea id="ruleText" class="form-input" placeholder="Wpisz treść zasady..." rows="3"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideAddRuleModal()">Anuluj</button>
+                <button class="btn btn-primary" onclick="addRule()">Dodaj</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal dodawania setupu -->
+    <div id="addSetupModal" class="modal">
+        <div class="modal-content" style="min-width: 400px;">
+            <h3 class="modal-title">Dodaj nowy setup</h3>
+            <div class="form-group">
+                <label class="form-label">Nazwa setupu:</label>
+                <input type="text" id="setupName" class="form-input" placeholder="np. Breakout, Pullback, Support/Resistance...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Opis setupu (opcjonalnie):</label>
+                <textarea id="setupDescription" class="form-input" placeholder="Opisz warunki wejścia, cele, stop loss..." rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Screenshoty (możesz dodać kilka):</label>
+                <input type="file" id="setupScreenshots" class="form-input" accept="image/*" multiple>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideAddSetupModal()">Anuluj</button>
+                <button class="btn btn-primary" onclick="addSetup()">Dodaj</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal edycji zasady -->
+    <div id="editRuleModal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Edytuj zasadę</h3>
+            <div class="form-group">
+                <label class="form-label">Treść zasady:</label>
+                <textarea id="editRuleText" class="form-input" placeholder="Wpisz treść zasady..." rows="3"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideEditRuleModal()">Anuluj</button>
+                <button class="btn btn-primary" onclick="saveEditRule()">Zapisz</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal edycji setupu -->
+    <div id="editSetupModal" class="modal">
+        <div class="modal-content" style="min-width: 400px;">
+            <h3 class="modal-title">Edytuj setup</h3>
+            <div class="form-group">
+                <label class="form-label">Nazwa setupu:</label>
+                <input type="text" id="editSetupName" class="form-input" placeholder="np. Breakout, Pullback, Support/Resistance...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Opis setupu (opcjonalnie):</label>
+                <textarea id="editSetupDescription" class="form-input" placeholder="Opisz warunki wejścia, cele, stop loss..." rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Screenshoty (możesz dodać kilka):</label>
+                <input type="file" id="editSetupScreenshots" class="form-input" accept="image/*" multiple>
+                <div id="currentSetupScreenshots" style="margin-top: 5px; font-size: 10px; color: #888;"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideEditSetupModal()">Anuluj</button>
+                <button class="btn btn-primary" onclick="saveEditSetup()">Zapisz</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rules = [];
+        let setups = [];
+        let editingRuleId = null;
+        let editingSetupId = null;
+        
+        // Funkcje localStorage
+        function saveToLocalStorage() {
+            const data = {
+                rules: rules,
+                setups: setups,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('traderRulesSetups', JSON.stringify(data));
+        }
+        
+        function loadFromLocalStorage() {
+            const data = JSON.parse(localStorage.getItem('traderRulesSetups') || '{}');
+            rules = data.rules || [];
+            setups = data.setups || [];
+        }
+        
+        // Inicjalizacja
+        loadFromLocalStorage();
+        renderRules();
+        renderSetups();
+        
+        // Funkcje pomocnicze
+        function formatMarkdown(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+        }
+        
+        function showScreenshot(src) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:2000;display:flex;align-items:center;justify-content:center;cursor:pointer';
+            
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.cssText = 'max-width:90%;max-height:90%;object-fit:contain';
+            
+            modal.appendChild(img);
+            modal.onclick = () => document.body.removeChild(modal);
+            document.body.appendChild(modal);
+        }
+        
+        // Funkcje zasad
+        function showAddRuleModal() {
+            document.getElementById('addRuleModal').style.display = 'block';
+        }
+        
+        function hideAddRuleModal() {
+            document.getElementById('addRuleModal').style.display = 'none';
+            document.getElementById('ruleText').value = '';
+        }
+        
+        function showEditRuleModal(ruleId) {
+            const rule = rules.find(r => r.id === ruleId);
+            if (!rule) return;
+            
+            editingRuleId = ruleId;
+            document.getElementById('editRuleText').value = rule.text;
+            document.getElementById('editRuleModal').style.display = 'block';
+        }
+        
+        function hideEditRuleModal() {
+            document.getElementById('editRuleModal').style.display = 'none';
+            document.getElementById('editRuleText').value = '';
+            editingRuleId = null;
+        }
+        
+        function addRule() {
+            const ruleText = document.getElementById('ruleText').value.trim();
+            
+            if (!ruleText) {
+                alert('Proszę wpisać treść zasady');
+                return;
+            }
+            
+            const rule = {
+                id: Date.now(),
+                text: ruleText,
+                timestamp: Date.now()
+            };
+            
+            rules.push(rule);
+            saveToLocalStorage();
+            renderRules();
+            hideAddRuleModal();
+        }
+        
+        function saveEditRule() {
+            const ruleText = document.getElementById('editRuleText').value.trim();
+            
+            if (!ruleText) {
+                alert('Proszę wpisać treść zasady');
+                return;
+            }
+            
+            const ruleIndex = rules.findIndex(r => r.id === editingRuleId);
+            if (ruleIndex !== -1) {
+                rules[ruleIndex].text = ruleText;
+                saveToLocalStorage();
+                renderRules();
+                hideEditRuleModal();
+            }
+        }
+        
+        function deleteRule(ruleId) {
+            if (confirm('Czy na pewno chcesz usunąć tę zasadę?')) {
+                const ruleIndex = rules.findIndex(r => r.id === ruleId);
+                if (ruleIndex !== -1) {
+                    rules.splice(ruleIndex, 1);
+                    saveToLocalStorage();
+                    renderRules();
+                }
+            }
+        }
+        
+        function renderRules() {
+            const rulesList = document.getElementById('rulesList');
+            rulesList.innerHTML = '';
+            
+            if (rules.length === 0) {
+                rulesList.innerHTML = '<div class="empty-state">Brak zasad. Dodaj pierwszą zasadę!</div>';
+                return;
+            }
+            
+            rules.forEach((rule, index) => {
+                const ruleElement = document.createElement('div');
+                ruleElement.className = 'rule-item';
+                
+                ruleElement.innerHTML = `
+                    <div class="rule-number">Zasada nr. ${index + 1}</div>
+                    <div class="rule-text">${formatMarkdown(rule.text)}</div>
+                    <div class="rule-buttons">
+                        <button class="rule-edit" onclick="showEditRuleModal(${rule.id})" title="Edytuj zasadę">✏️</button>
+                        <button class="rule-delete" onclick="deleteRule(${rule.id})" title="Usuń zasadę">×</button>
+                    </div>
+                `;
+                
+                rulesList.appendChild(ruleElement);
+            });
+        }
+        
+        // Funkcje setupów
+        function showAddSetupModal() {
+            document.getElementById('addSetupModal').style.display = 'block';
+        }
+        
+        function hideAddSetupModal() {
+            document.getElementById('addSetupModal').style.display = 'none';
+            document.getElementById('setupName').value = '';
+            document.getElementById('setupDescription').value = '';
+            document.getElementById('setupScreenshots').value = '';
+        }
+        
+        function showEditSetupModal(setupId) {
+            const setup = setups.find(s => s.id === setupId);
+            if (!setup) return;
+            
+            editingSetupId = setupId;
+            document.getElementById('editSetupName').value = setup.name;
+            document.getElementById('editSetupDescription').value = setup.description || '';
+            
+            if (setup.screenshots && setup.screenshots.length > 0) {
+                document.getElementById('currentSetupScreenshots').innerHTML = `Aktualnie: ${setup.screenshots.length} screenshot(ów)`;
+            } else {
+                document.getElementById('currentSetupScreenshots').innerHTML = 'Brak screenshotów';
+            }
+            
+            document.getElementById('editSetupModal').style.display = 'block';
+        }
+        
+        function hideEditSetupModal() {
+            document.getElementById('editSetupModal').style.display = 'none';
+            document.getElementById('editSetupName').value = '';
+            document.getElementById('editSetupDescription').value = '';
+            document.getElementById('editSetupScreenshots').value = '';
+            document.getElementById('currentSetupScreenshots').innerHTML = '';
+            editingSetupId = null;
+        }
+        
+        function addSetup() {
+            const setupName = document.getElementById('setupName').value.trim();
+            const setupDescription = document.getElementById('setupDescription').value.trim();
+            const screenshotFiles = document.getElementById('setupScreenshots').files;
+            
+            if (!setupName) {
+                alert('Proszę wypełnić nazwę setupu');
+                return;
+            }
+            
+            const setup = {
+                id: Date.now(),
+                name: setupName,
+                description: setupDescription,
+                screenshots: [],
+                timestamp: Date.now()
+            };
+            
+            if (screenshotFiles.length > 0) {
+                let filesProcessed = 0;
+                
+                Array.from(screenshotFiles).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        setup.screenshots.push(e.target.result);
+                        filesProcessed++;
+                        
+                        if (filesProcessed === screenshotFiles.length) {
+                            setups.push(setup);
+                            saveToLocalStorage();
+                            renderSetups();
+                            hideAddSetupModal();
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                setups.push(setup);
+                saveToLocalStorage();
+                renderSetups();
+                hideAddSetupModal();
+            }
+        }
+        
+        function saveEditSetup() {
+            const setupName = document.getElementById('editSetupName').value.trim();
+            const setupDescription = document.getElementById('editSetupDescription').value.trim();
+            const screenshotFiles = document.getElementById('editSetupScreenshots').files;
+            
+            if (!setupName) {
+                alert('Proszę wypełnić nazwę setupu');
+                return;
+            }
+            
+            const setupIndex = setups.findIndex(s => s.id === editingSetupId);
+            if (setupIndex === -1) return;
+            
+            const setup = setups[setupIndex];
+            setup.name = setupName;
+            setup.description = setupDescription;
+            
+            if (screenshotFiles.length > 0) {
+                setup.screenshots = [];
+                let filesProcessed = 0;
+                
+                Array.from(screenshotFiles).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        setup.screenshots.push(e.target.result);
+                        filesProcessed++;
+                        
+                        if (filesProcessed === screenshotFiles.length) {
+                            saveToLocalStorage();
+                            renderSetups();
+                            hideEditSetupModal();
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                saveToLocalStorage();
+                renderSetups();
+                hideEditSetupModal();
+            }
+        }
+        
+        function deleteSetup(setupId) {
+            if (confirm('Czy na pewno chcesz usunąć ten setup?')) {
+                const setupIndex = setups.findIndex(s => s.id === setupId);
+                if (setupIndex !== -1) {
+                    setups.splice(setupIndex, 1);
+                    saveToLocalStorage();
+                    renderSetups();
+                }
+            }
+        }
+        
+        function renderSetups() {
+            const setupsList = document.getElementById('setupsList');
+            setupsList.innerHTML = '';
+            
+            if (setups.length === 0) {
+                setupsList.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;">Brak setupów. Dodaj pierwszy setup!</div>';
+                return;
+            }
+            
+            // Sortuj setupy według timestampu
+            const sortedSetups = [...setups].sort((a, b) => a.timestamp - b.timestamp);
+            
+            sortedSetups.forEach((setup, index) => {
+                const setupElement = document.createElement('div');
+                setupElement.className = 'setup-item';
+                
+                const setupNumber = index + 1;
+                const setupTitle = `Setup nr ${setupNumber} - ${setup.name}`;
+                
+                setupElement.innerHTML = `
+                    <div class="setup-header">
+                        <div>
+                            <div class="setup-title">${setupTitle}</div>
+                        </div>
+                        <div class="setup-buttons">
+                            <button class="setup-edit" onclick="showEditSetupModal(${setup.id})" title="Edytuj setup">✏️</button>
+                            <button class="setup-delete" onclick="deleteSetup(${setup.id})" title="Usuń setup">×</button>
+                        </div>
+                    </div>
+                    ${setup.description ? `<div class="setup-description">${formatMarkdown(setup.description)}</div>` : ''}
+                    ${setup.screenshots && setup.screenshots.length > 0 ? `
+                        <div class="setup-screenshots">
+                            ${setup.screenshots.map(screenshot => `
+                                <img src="${screenshot}" alt="Setup screenshot" class="setup-screenshot" onclick="showScreenshot('${screenshot}')">
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                `;
+                
+                setupsList.appendChild(setupElement);
+            });
+        }
+        
+        // Zamknij modal po kliknięciu poza nim
+        window.onclick = function(event) {
+            const modals = ['addRuleModal', 'addSetupModal', 'editRuleModal', 'editSetupModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
